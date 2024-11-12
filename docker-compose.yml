@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  # Database Service (SQL Server)
+  database:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=Rocketman12.
+    ports:
+      - "1433:1433"  # Expose SQL Server on port 1433
+    networks:
+      - app-network
+
+  # Backend Service (Spring Boot Application)
+  backend:
+    build:
+      context: ./Utilisateur  # Adjust to the actual path of your backend
+    environment:
+      - SPRING_APPLICATION_NAME=Utilisateur
+      - SPRING_DATASOURCE_URL=jdbc:sqlserver://database:1433;databaseName=Users;encrypt=false;trustServerCertificate=true
+      - SPRING_DATASOURCE_USERNAME=imad1
+      - SPRING_DATASOURCE_PASSWORD=Rocketman12.
+      - SPRING_DATASOURCE_DRIVER_CLASS_NAME=com.microsoft.sqlserver.jdbc.SQLServerDriver
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - SPRING_JPA_SHOW_SQL=true
+      - SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.SQLServerDialect
+    ports:
+      - "8090:8090"
+    depends_on:
+      - database
+    networks:
+      - app-network
+
+  # Frontend Service (Angular Application)
+  frontend:
+    build:
+      context: ./Frontend  # Adjust to the actual path of your frontend
+    ports:
+      - "80:80"  # Expose NGINX on port 80
+    depends_on:
+      - backend
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
